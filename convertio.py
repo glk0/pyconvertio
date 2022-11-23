@@ -1,8 +1,8 @@
 """convertio.py - Lightweight Python wrapper for the Convertio  API.
 
-This module provide 2 main classess, Client and Conversion. Client
+This module provide 2 main classes, Client and Conversion. Client
 is initialized with the API key and can be used to create new 
-Conversion objects.
+Conversion objects with the `convert` function.
 
 Example
 -------
@@ -27,16 +27,22 @@ class Conversion(object):
         self.id, self.client = conversion_id, client
 
     def get_status (self):
+        """Get status of the conversion. See API docs
+        for the values stored in the object
+        """
         return self.client.get_status(self.id)
 
     def download (self, dest = None, timeout = 1e9):
+        """Download the output to `dest`"""
         self.client.download (self.id, dest) 
         return self
 
     def delete (self):
+        """Delete output file from server"""
         self.client.delete (self.id)
 
     def wait (timeout = 1e9):
+        """Wait for conversion to complete"""
         self.client.wait (timeout)
         return self
 
@@ -60,6 +66,7 @@ class Client(object):
                 output.write (chunk)
 
     def get_balance (self):
+        """Get the available minutes balance"""
         return self._request("POST", "/balance", 
                 json = {"apikey" : self.api_key})["minutes_left"]
 

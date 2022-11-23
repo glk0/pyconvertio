@@ -1,4 +1,4 @@
-# Convertio API's client library in Python
+# Convertio API client library in Python
 
 Small wrapper for the Convertio file conversion API. Feel free to do whatever you want with it.
 You can read the full API docs [here](https://convertio.co/api/docs/).
@@ -7,12 +7,19 @@ You can read the full API docs [here](https://convertio.co/api/docs/).
 
 - [validators](https://github.com/python-validators/validators)
 
-## Example 
+## Examples
+
+### Simple EPUB to PDF conversion
 
 ```python3
 import convertio
 api = convertio.Client (open (".apiKey", "r").read ())
-conversion = api.convert ("./nvl.epub", "pdf", options = {"callback_url": "https://path/to/endpoint"})
-conversion.download ("./n.pdf").delete ()
+conversion = api.convert ("./nvl.epub", "pdf")
+conversion.download ().delete ()
 ```
 
+### Convert online HTML to JPG
+
+```python3
+api.convert ("https://google.com", "jpg").download (dest = "g.jpg")
+```
