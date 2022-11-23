@@ -29,7 +29,7 @@ class Conversion(object):
     def get_status (self):
         return self.client.get_status(self.id)
 
-    def download (self, dest, timeout = 1e9):
+    def download (self, dest = None, timeout = 1e9):
         self.client.download (self.id, dest) 
         return self
 
@@ -80,33 +80,32 @@ class Client(object):
                 "apikey" : self.api_key,
                 "outputformat" : output_format
                 }
-        file_to_upload = None
         if isinstance(source, str) and validate_url (source):
             req_body ["input"], req_body ["file"] = "url", source
         else:
             req_body ["input"] = "upload"
-            if isinstance(source, str, Path):
+            if isinstance(source, (str, Path)):
                 p = Path (source)
                 if p.exists () and p.is_file ():
-                    file_to_upload = p.open ("rb")
+                    source = p.open ("rb")
                 else: raise ValueError ("Invalid file")
-            else: file_to_upload = source
 
         if "filename" in kwargs:
             req_body ["filename"] = kwargs ["filename"]
         else:
-            if hasattr(source, "name"): req_body["filename"] = source.name
-            else: req_body ["filename"] = secrets.token_hex ()
+            if hasattr(source, "name"):
+                req_body["filename"] = source.name
+            else: req_body ["filename"] = secrets.token_hex (16)
         if ("options" in kwargs and 
                 isinstance (kwargs["options"], dict) and 
                 len (kwargs["options"]) > 0):
             req_body ["options"] = kwargs ["options"]
         data = self._request ("POST", "/convert", json = req_body)
         conv = Conversion (self, data ["id"])
-        if file_to_upload != None:
+        if req_body["input"] == "upload":
             self._request ("PUT", 
                     f'/convert/{conv.id}/{req_body ["filename"]}',
-                    files = {req_body ["filename"] : file_to_upload })
+                    files = {req_body ["filename"] : source})
         return conv
 
     def list_conversions (self, count = 10, status  = "all"):
@@ -129,12 +128,12 @@ class Client(object):
         status = self.get_status (conversion_id)
         if status ["step"] == "finish": return self
         while time.time () - start < timeout:
-            status = self.get_status ()
+            status = self.get_status (conversion_id)
             if status ["step"] == "finish": return self
             else: time.sleep (0.5)
         raise TimeoutError ("File not ready yet")
 
-    def download (conversion_id, dest = None, timeout = 1e9):
+    def download (self, conversion_id, dest = None, timeout = 1e9):
         """Download the ouput file to the given destination.
 
         `dest` is a string or file-like object. If there is more than 
@@ -144,11 +143,12 @@ class Client(object):
         The function will wait for at most `timeout` before raising 
         an error if the file is not ready for download.
         """
-        status = self.wait (conversion_id, timeout).get_status ()
+        self.wait (conversion_id, timeout)
+        status = self.get_status (conversion_id)
         url = status ["output"]["url"]
         if dest == None:
-            dest = basename(urlparse(url).path)
-        if not isinstance(dest, str, Path): self._save (url, dest)
+            dest = open (basename(urlparse(url).path), "wb")
+        if not isinstance(dest, (str, Path)): self._save (url, dest)
         else:
             dest = Path (dest)
             if not dest.is_dir (): 
