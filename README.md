@@ -1,4 +1,4 @@
-# Pyconvertio: Convertio API client library in Python
+# pyconvertio: A Python Convertio API client
 
 Pyconvertio is a small wrapper for the Convertio file conversion API. Feel free to do whatever you want with it.
 You can read the full API docs [here](https://convertio.co/api/docs/).
