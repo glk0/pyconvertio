@@ -1,6 +1,6 @@
-# pyconvertio: Python Convertio API wrapper
+# pyconvertio - Convertio API wrapper
 
-pyconvertio is a small wrapper for the Convertio file conversion API. Feel free to use
+**pyconvertio** is a small wrapper for the Convertio file conversion API. Feel free to use
 however you like.
 You can read the full API docs [here](https://convertio.co/api/docs/).
 
